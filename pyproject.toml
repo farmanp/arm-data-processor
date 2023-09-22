@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "arm-data-processor"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <your_email@example.com>"]
+readme = "README.md"
+packages = [{include = "arm_data_processor"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+requests = "^2.31.0"
+nltk = "^3.8.1"
+pypdf2 = "^3.0.1"
+sqlalchemy = "^2.0.21"
+logging = "^0.4.9.6"
+tqdm = "^4.66.1"
+pdfplumber = "^0.10.2"
+pyspark = "^3.4.1"
+black = "^23.9.1"
+boto3 = "^1.28.52"
+python-dotenv = "^1.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

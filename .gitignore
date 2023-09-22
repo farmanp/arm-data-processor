@@ -1,0 +1,26 @@
+# Python related
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+*.log
+
+# Environment related
+.venv/
+.env
+*.pem
+
+# Poetry related
+poetry.lock
+
+# Testing related
+.pytest_cache/
+.mypy_cache/
+.tox/
+
+# Editor related
+.vscode/
+
+# Operating systems related
+.DS_Store  # macOS
+Thumbs.db  # Windows
