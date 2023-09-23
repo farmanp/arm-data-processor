@@ -11,6 +11,10 @@ MINIO_PORT = os.getenv("MINIO_PORT")
 MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY")
 MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY")
 MINIO_BUCKET_NAME = os.getenv("MINIO_BUCKET_NAME")
+MONGODB_HOST = os.getenv("MONGODB_HOST")
+MONGODB_PORT = os.getenv("MONGODB_PORT")
+MONGODB_NAME = os.getenv("MONGODB_NAME")
+MONGO_URI = f"mongodb://{MONGODB_HOST}:{MONGODB_PORT}/{MONGODB_NAME}"
 
 
 def process_pdf_from_minio(pdf_path):
@@ -38,7 +42,15 @@ def process_pdf(pdf_path):
 
 if __name__ == "__main__":
     # Create a Spark session
-    spark = SparkSession.builder.appName("PDFProcessing").getOrCreate()
+    spark = (
+        SparkSession.builder.appName("PDFProcessing")
+        .config(
+            "spark.jars.packages", "org.mongodb.spark:mongo-spark-connector_2.12:3.0.1"
+        )
+        .getOrCreate()
+    )
+
+    spark.sparkContext.setLogLevel("INFO")
 
     # Fetch list of objects in the bucket
     s3_client = boto3.client(
@@ -55,8 +67,10 @@ if __name__ == "__main__":
     # Create an RDD from the list of PDF file paths and process them
     pdf_rdd = spark.sparkContext.parallelize(pdf_files)
     processed_data = pdf_rdd.flatMap(process_pdf_from_minio).collect()
+    pdf_df = spark.createDataFrame(processed_data, ["path", "page_number", "text"])
 
-    for data in processed_data:
-        print(data)
+    pdf_df.write.format("mongo").option("uri", MONGO_URI).option(
+        "database", MONGODB_NAME
+    ).option("collection", "raw_product_manuals").mode("append").save()
 
     spark.stop()

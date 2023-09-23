@@ -19,6 +19,7 @@ pyspark = "^3.4.1"
 black = "^23.9.1"
 boto3 = "^1.28.52"
 python-dotenv = "^1.0.0"
+pymongo = "^4.5.0"
 
 
 [build-system]
