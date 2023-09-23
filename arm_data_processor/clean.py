@@ -17,6 +17,9 @@ MONGO_URI = f"mongodb://{MONGODB_HOST}:{MONGODB_PORT}/{MONGODB_NAME}"
 raw_product_manuals_collection = pymongo.MongoClient(MONGO_URI)[MONGODB_NAME][
     "raw_product_manuals"
 ]
+clean_product_manuals_collection = pymongo.MongoClient(MONGO_URI)[MONGODB_NAME][
+    "clean_product_manuals"
+]
 
 raw_product_manuals = raw_product_manuals_collection.find()
 
@@ -59,12 +62,17 @@ if __name__ == "__main__":
 
     spark.sparkContext.setLogLevel("INFO")
 
-    clean_product_manuals = clean_raw_product_manuals(raw_product_manuals)
+    for raw_product_manual in clean_raw_product_manuals(raw_product_manuals):
+        # Check if the cleaned text already exists in the clean_product_manuals collection
+        existing_doc = clean_product_manuals_collection.find_one(
+            {"text": raw_product_manual["text"]}
+        )
+        if existing_doc:
+            print(f"Skipping duplicate: {raw_product_manual['_id']}")
+            continue
 
-    clean_product_manuals_df = spark.createDataFrame(
-        clean_product_manuals, schema=schema
-    )
+        # If not a duplicate, insert the cleaned document into the clean_product_manuals collection
+        clean_product_manuals_collection.insert_one(raw_product_manual)
+        print(f"Inserted: {raw_product_manual['_id']}")
 
-    clean_product_manuals_df.write.format("mongo").option("uri", MONGO_URI).option(
-        "database", MONGODB_NAME
-    ).option("collection", "clean_product_manuals").mode("append").save()
+    spark.stop()
